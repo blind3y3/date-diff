@@ -1,3 +1,5 @@
+<?php
+
 function getExpireDate($id)
 {
     $dsn = 'mysql:host=localhost;dbname=test_db';
@@ -31,7 +33,7 @@ function getExpireDate($id)
                 $minDate = $activationDates[$i + 1];
             }
         }
-        
+
         return $minDate->modify('+ ' . 60 * count($activationDates) . ' days')->format('Y-m-d H:i:s');
     }
 
