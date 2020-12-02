@@ -11,16 +11,16 @@ function getExpireDate($id)
     $dbRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($dbRows as $dbRow) {
-        $currentDate = DateTime::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', time()));
         $activationDate = DateTime::createFromFormat('Y-m-d H:i:s', $dbRow['ACTIVATION_DATE']);
-
-        if ($currentDate->diff($activationDate)->days < 60) {
-            $activationDates[] = $activationDate;
-        }
+        $activationDates[] = $activationDate;
     }
 
     if (empty($activationDates)) {
         return false;
+    }
+
+    if (count($activationDates) == 1) {
+        return $activationDates[0]->modify('+ 60 days')->format('Y-m-d H:i:s');
     }
 
     $minDate = 0;
@@ -34,8 +34,13 @@ function getExpireDate($id)
             }
         }
 
-        return $minDate->modify('+ ' . 60 * count($activationDates) . ' days')->format('Y-m-d H:i:s');
+        $currentDate = DateTime::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', time()));
+        $licenseExpires = $minDate->modify('+ ' . 60 * count($activationDates) . ' days');
+
+        if ($currentDate->diff($licenseExpires)->days < 60 * count($activationDates)) {
+            return $licenseExpires;
+        }
     }
 
-    return $activationDates[0]->modify('+ 60 days')->format('Y-m-d H:i:s');
+    return false;
 }
